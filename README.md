@@ -60,4 +60,34 @@ pnpm install
 pnpm dev
 ```
 
-**Teknolojiler**: React 19 + TypeScript + Vite
+### Kalite Komutları
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+### Ortam Değişkenleri
+
+`.env.example` dosyasını kopyalayarak runtime davranışını yönetebilirsin:
+
+- `VITE_ANALYTICS_ENABLED`: analytics aç/kapat.
+- `VITE_GA_MEASUREMENT_ID`: GA measurement id.
+- `VITE_ENABLE_CHEATS`: production build'de cheat menüsünü görünür yap.
+
+### Baseline
+
+Refactor boyunca korunması gereken kritik akışlar ve metrik hedefleri için:
+
+- `docs/baseline-metrics.md`
+
+### Workspace Evrimi
+
+Monorepo geçişi için başlangıç dizinleri eklendi:
+
+- `apps/web`
+- `packages/game-core`
+
+**Teknolojiler**: React 19 + TypeScript + Vite + Vitest

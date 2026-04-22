@@ -1,10 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { GameEngine } from "../game/Engine";
-import { GameState, GameOptions, CheatConfig } from "../game/types";
+import { GameState, GameOptions, CheatConfig, PerfStats } from "../game/types";
 import { PowerUpType } from "../game/Entities";
 import { HUD } from "./HUD";
 import { MainMenu, PauseMenu, GameOverMenu, GuideOverlay, OptionsOverlay, CheatOverlay } from "./Menus";
-import ReactGA from "react-ga4";
+import { trackPageView } from "../lib/telemetry";
+import {
+  DEFAULT_CHEATS,
+  DEFAULT_OPTIONS,
+  loadCheats,
+  loadNumber,
+  loadOptions,
+  saveCheats as saveCheatsStorage,
+  saveNumber,
+  saveOptions,
+} from "../lib/storage";
+import { runtimeConfig } from "../config/runtime";
+import { Toast } from "./Toast";
 
 export function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -16,116 +28,77 @@ export function GameCanvas() {
   const [dpm, setDpm] = useState(0);
   const [activePowerUps, setActivePowerUps] = useState<PowerUpType[]>([]);
   const [totalEnemiesSpawned, setTotalEnemiesSpawned] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    const saved = localStorage.getItem("neon-vortex-highscore");
-    return saved ? parseInt(saved) : 0;
-  });
+  const [perfStats, setPerfStats] = useState<PerfStats>({ p50: 0, p95: 0, samples: 0 });
+  const [toastMessage, setToastMessage] = useState("");
+  const [highScore, setHighScore] = useState(() => loadNumber("neon-vortex-highscore", 0));
 
-  useEffect(() => {
-    if (score > highScore) {
-      setHighScore(score);
-      localStorage.setItem("neon-vortex-highscore", score.toString());
-    }
-  }, [score, highScore]);
-
-  const DEFAULT_OPTIONS: GameOptions = {
-    wallMode: "BOUNCE",
-    gameMode: "INFINITE",
-    enemySpeed: "SLOW",
-    movementMode: "WASD",
-    soundEnabled: true,
-    autoFire: false,
-    difficulty: "NORMAL",
-    survivalThreshold: 30,
-  };
-
-  const [options, setOptions] = useState<GameOptions>(() => {
-    const saved = localStorage.getItem("neon-vortex-options");
-    return saved ? { ...DEFAULT_OPTIONS, ...JSON.parse(saved) } : DEFAULT_OPTIONS;
-  });
+  const [options, setOptions] = useState<GameOptions>(() => loadOptions());
   const [showOptions, setShowOptions] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
-  const [showCheats, setShowCheats] = useState(false);
+  const [showCheats, setShowCheats] = useState(false); // UI hidden in prod by config, state retained for dev builds.
+  const initialOptionsRef = useRef(options);
 
   // Track screen views for overlays
   useEffect(() => {
     if (showOptions) {
-      ReactGA.send({ hitType: "pageview", page: "/options", title: "Options" });
+      trackPageView("/options", "Options");
     }
   }, [showOptions]);
 
   useEffect(() => {
     if (showGuide) {
-      ReactGA.send({ hitType: "pageview", page: "/guide", title: "Guide" });
+      trackPageView("/guide", "Guide");
     }
   }, [showGuide]);
 
   useEffect(() => {
     if (showCheats) {
-      ReactGA.send({ hitType: "pageview", page: "/cheats", title: "Cheats" });
+      trackPageView("/cheats", "Cheats");
     }
   }, [showCheats]);
 
-  const [cheats, setCheats] = useState<CheatConfig>({
-    enemySpawnRate: 60,
-    powerUpChance: 0.3,
-    enemySpeedMultiplier: 1.0,
-    godMode: false,
-    survivalThresholdOverride: null,
-  });
-
-  // Load cheats from local storage
-  useEffect(() => {
-    const savedCheats = localStorage.getItem("neon-vortex-cheats");
-    if (savedCheats) {
-      try {
-        setCheats(JSON.parse(savedCheats));
-      } catch (e) {
-        console.error("Failed to load cheats", e);
-      }
-    }
-  }, []);
+  const [cheats, setCheats] = useState<CheatConfig>(() => loadCheats());
+  const initialCheatsRef = useRef(cheats);
 
   const saveCheats = () => {
-    localStorage.setItem("neon-vortex-cheats", JSON.stringify(cheats));
-    alert("Cheats Saved!");
+    saveCheatsToStorage(cheats);
+    setToastMessage("Cheats saved.");
+    window.setTimeout(() => setToastMessage(""), 1500);
   };
 
   const resetCheats = () => {
-    const defaults: CheatConfig = {
-      enemySpawnRate: 60,
-      powerUpChance: 0.3,
-      enemySpeedMultiplier: 1.0,
-      godMode: false,
-      survivalThresholdOverride: null,
-    };
-    setCheats(defaults);
+    setCheats(DEFAULT_CHEATS);
     localStorage.removeItem("neon-vortex-cheats");
   };
 
   useEffect(() => {
-    localStorage.setItem("neon-vortex-options", JSON.stringify(options));
+    saveOptions(options);
   }, [options]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    const engine = new GameEngine(canvasRef.current, (state, score, level, dpm, powerups, enemiesSpawned) => {
+    const engine = new GameEngine(canvasRef.current, (state, score, level, dpm, powerups, enemiesSpawned, perf) => {
       setGameState(state);
       setScore(score);
+      setHighScore((previous) => {
+        if (score <= previous) return previous;
+        saveNumber("neon-vortex-highscore", score);
+        return score;
+      });
       setLevel(level);
       setDpm(dpm);
       setActivePowerUps(powerups);
       setTotalEnemiesSpawned(enemiesSpawned);
+      setPerfStats(perf);
     });
     engineRef.current = engine;
-    engine.setOptions(options);
-    engine.setCheats(cheats);
+    engine.setOptions(initialOptionsRef.current);
+    engine.setCheats(initialCheatsRef.current);
 
     return () => {
       engine.destroy();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update engine when options change
@@ -156,24 +129,50 @@ export function GameCanvas() {
         cheats={cheats}
         activePowerUps={activePowerUps}
         totalEnemiesSpawned={totalEnemiesSpawned}
+        perfStats={perfStats}
       />
 
       {/* Overlays */}
       {gameState === GameState.MENU && !showOptions && !showGuide && !showCheats && (
-        <MainMenu startGame={startGame} setShowGuide={setShowGuide} setShowOptions={setShowOptions} setShowCheats={setShowCheats} options={options} />
+        <MainMenu
+          startGame={startGame}
+          setShowGuide={setShowGuide}
+          setShowOptions={setShowOptions}
+          setShowCheats={setShowCheats}
+          options={options}
+          canShowCheats={runtimeConfig.enableCheatsInProduction || import.meta.env.DEV}
+        />
       )}
 
       {showGuide && <GuideOverlay setShowGuide={setShowGuide} />}
 
-      {showOptions && <OptionsOverlay options={options} setOptions={setOptions} setShowOptions={setShowOptions} DEFAULT_OPTIONS={DEFAULT_OPTIONS} />}
+      {showOptions && (
+        <OptionsOverlay
+          options={options}
+          setOptions={setOptions}
+          setShowOptions={setShowOptions}
+          DEFAULT_OPTIONS={DEFAULT_OPTIONS}
+        />
+      )}
 
       {showCheats && (
-        <CheatOverlay cheats={cheats} setCheats={setCheats} setShowCheats={setShowCheats} saveCheats={saveCheats} resetCheats={resetCheats} />
+        <CheatOverlay
+          cheats={cheats}
+          setCheats={setCheats}
+          setShowCheats={setShowCheats}
+          saveCheats={saveCheats}
+          resetCheats={resetCheats}
+        />
       )}
 
       {gameState === GameState.PAUSED && <PauseMenu resumeGame={resumeGame} exitToMenu={exitToMenu} />}
 
-      {gameState === GameState.GAMEOVER && <GameOverMenu score={score} highScore={highScore} restartGame={restartGame} exitToMenu={exitToMenu} />}
+      {gameState === GameState.GAMEOVER && (
+        <GameOverMenu score={score} highScore={highScore} restartGame={restartGame} exitToMenu={exitToMenu} />
+      )}
+      <Toast message={toastMessage} />
     </div>
   );
 }
+
+const saveCheatsToStorage = (cheats: CheatConfig) => saveCheatsStorage(cheats);

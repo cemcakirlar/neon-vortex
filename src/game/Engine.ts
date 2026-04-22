@@ -1,7 +1,10 @@
 import { Player, Enemy, Bullet, Vector2, Particle, PowerUp, PowerUpType, EnemyType } from "./Entities";
 import { AudioController } from "./Audio";
-import { GameState, GameOptions, CheatConfig } from "./types";
-import ReactGA from "react-ga4";
+import { GameState, GameOptions, CheatConfig, PerfStats } from "./types";
+import { trackEvent } from "../lib/telemetry";
+import { shouldTriggerSurvivalGameOver, getSpawnRate } from "./rules";
+import { createFreshRuntimeState } from "./state";
+import { FrameProfiler } from "./perf";
 
 export class GameEngine {
   private canvas: HTMLCanvasElement;
@@ -60,12 +63,22 @@ export class GameEngine {
     level: number,
     dpm: number,
     activePowerUps: PowerUpType[],
-    totalEnemiesSpawned: number
+    totalEnemiesSpawned: number,
+    perfStats: PerfStats,
   ) => void;
+  private profiler = new FrameProfiler();
 
   constructor(
     canvas: HTMLCanvasElement,
-    onStateChange: (state: GameState, score: number, level: number, dpm: number, activePowerUps: PowerUpType[], totalEnemiesSpawned: number) => void
+    onStateChange: (
+      state: GameState,
+      score: number,
+      level: number,
+      dpm: number,
+      activePowerUps: PowerUpType[],
+      totalEnemiesSpawned: number,
+      perfStats: PerfStats,
+    ) => void,
   ) {
     this.canvas = canvas;
     this.onStateChange = onStateChange;
@@ -90,7 +103,15 @@ export class GameEngine {
   private notifyState() {
     if (this.onStateChange) {
       const activePowerUps = Array.from(this.player.powerups.keys());
-      this.onStateChange(this.state, this.score, this.level, this.deathsPerMinute, activePowerUps, this.totalEnemiesSpawned);
+      this.onStateChange(
+        this.state,
+        this.score,
+        this.level,
+        this.deathsPerMinute,
+        activePowerUps,
+        this.totalEnemiesSpawned,
+        this.profiler.getStats(),
+      );
     }
   }
 
@@ -132,27 +153,27 @@ export class GameEngine {
   }
 
   startGame() {
-    this.score = 0;
-    this.level = 1;
-    this.deathCount = 0;
-    this.deathCount = 0;
-    this.deathsPerMinute = 0;
-    this.totalEnemiesSpawned = 0;
-    this.startTime = Date.now();
-
-    this.player = new Player(this.canvas.width / 2, this.canvas.height / 2);
-    this.bullets = [];
-    this.enemyBullets = [];
-    this.enemies = [];
-    this.particles = [];
-    this.powerups = [];
+    const freshState = createFreshRuntimeState(this.canvas.width, this.canvas.height);
+    this.score = freshState.score;
+    this.level = freshState.level;
+    this.deathCount = freshState.deathCount;
+    this.deathsPerMinute = freshState.deathsPerMinute;
+    this.totalEnemiesSpawned = freshState.totalEnemiesSpawned;
+    this.startTime = freshState.startTime;
+    this.player = freshState.player;
+    this.bullets = freshState.bullets;
+    this.enemyBullets = freshState.enemyBullets;
+    this.enemies = freshState.enemies;
+    this.particles = freshState.particles;
+    this.powerups = freshState.powerups;
     this.keysPressed.clear();
     this.state = GameState.PLAYING;
     this.isRunning = true;
     this.lastTime = performance.now();
+    this.audio.resumeIfNeeded();
     this.notifyState();
 
-    ReactGA.event("game_start", {
+    trackEvent("game_start", {
       game_mode: this.options.gameMode,
       difficulty: this.options.difficulty,
     });
@@ -238,7 +259,9 @@ export class GameEngine {
   private loop = (timestamp: number) => {
     if (!this.isRunning) return;
 
-    const dt = Math.min((timestamp - this.lastTime) / 16.67, 2);
+    const frameMs = timestamp - this.lastTime;
+    this.profiler.addSample(frameMs);
+    const dt = Math.min(frameMs / 16.67, 2);
     this.lastTime = timestamp;
 
     this.update(dt);
@@ -259,17 +282,8 @@ export class GameEngine {
       this.deathsPerMinute = minutesPlayed > 0 ? Number((this.deathCount / minutesPlayed).toFixed(1)) : 0;
 
       // Survival Mode Logic
-      if (this.options.gameMode === "SURVIVAL") {
-        const threshold = this.cheats.survivalThresholdOverride ?? this.options.survivalThreshold;
-        // Grace period: Wait until (120 / threshold) enemies have spawned
-        // e.g. Threshold 30 -> Wait for 4 enemies
-        const minEnemies = Math.ceil(120 / (threshold || 1)); // Avoid div by 0
-
-        if (this.totalEnemiesSpawned >= minEnemies) {
-          if (this.deathsPerMinute > threshold) {
-            this.gameOver();
-          }
-        }
+      if (shouldTriggerSurvivalGameOver(this.options, this.cheats, this.deathsPerMinute, this.totalEnemiesSpawned)) {
+        this.gameOver();
       }
 
       // Update UI occasionally
@@ -356,7 +370,7 @@ export class GameEngine {
       this.spawnEnemy(centerX, centerY, radius);
 
       // Use cheat spawn rate as base, scale with level
-      const spawnRate = Math.max(10, this.cheats.enemySpawnRate - this.level * 2);
+      const spawnRate = getSpawnRate(this.cheats.enemySpawnRate, this.level);
       this.enemySpawnTimer = spawnRate;
     }
 
@@ -492,7 +506,7 @@ export class GameEngine {
     this.spawnParticles(p.pos.x, p.pos.y, p.color, 10); // Visual feedback
     this.notifyState();
 
-    ReactGA.event("power_up_collected", {
+    trackEvent("power_up_collected", {
       type: p.type,
     });
   }
@@ -543,7 +557,7 @@ export class GameEngine {
   private gameOver() {
     this.state = GameState.GAMEOVER;
 
-    ReactGA.event("game_over", {
+    trackEvent("game_over", {
       game_mode: this.options.gameMode,
       score: this.score,
       level: this.level,

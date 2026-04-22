@@ -67,9 +67,17 @@ interface MainMenuProps {
   setShowOptions: (show: boolean) => void;
   setShowCheats: (show: boolean) => void;
   options: GameOptions;
+  canShowCheats: boolean;
 }
 
-export const MainMenu: React.FC<MainMenuProps> = ({ startGame, setShowGuide, setShowOptions, setShowCheats, options }) => (
+export const MainMenu: React.FC<MainMenuProps> = ({
+  startGame,
+  setShowGuide,
+  setShowOptions,
+  setShowCheats,
+  options,
+  canShowCheats,
+}) => (
   <div style={overlayStyle}>
     <h1 style={titleStyle}>NEON VORTEX</h1>
     <button onClick={startGame} style={buttonStyle}>
@@ -82,15 +90,25 @@ export const MainMenu: React.FC<MainMenuProps> = ({ startGame, setShowGuide, set
       <button onClick={() => setShowOptions(true)} style={{ ...buttonStyle, fontSize: "18px" }}>
         OPTIONS
       </button>
-      <button
-        onClick={() => setShowCheats(true)}
-        style={{ ...buttonStyle, fontSize: "18px", borderColor: "#ff00ff", color: "#ff00ff", boxShadow: "0 0 15px rgba(255, 0, 255, 0.3)" }}
-      >
-        CHEATS
-      </button>
+      {canShowCheats && (
+        <button
+          onClick={() => setShowCheats(true)}
+          style={{
+            ...buttonStyle,
+            fontSize: "18px",
+            borderColor: "#ff00ff",
+            color: "#ff00ff",
+            boxShadow: "0 0 15px rgba(255, 0, 255, 0.3)",
+          }}
+        >
+          CHEATS
+        </button>
+      )}
     </div>
     <p style={{ marginTop: "40px", color: "#888", fontSize: "16px" }}>
-      {options.movementMode === "RECOIL" ? "Mouse to Aim • Click to Shoot • Recoil to Move" : "WASD to Move • Mouse/Space to Shoot"}
+      {options.movementMode === "RECOIL"
+        ? "Mouse to Aim • Click to Shoot • Recoil to Move"
+        : "WASD to Move • Mouse/Space to Shoot"}
     </p>
   </div>
 );
@@ -107,7 +125,10 @@ export const PauseMenu: React.FC<PauseMenuProps> = ({ resumeGame, exitToMenu }) 
     <button onClick={resumeGame} style={buttonStyle}>
       RESUME
     </button>
-    <button onClick={exitToMenu} style={{ ...buttonStyle, marginTop: "20px", borderColor: "#fff", color: "#fff", boxShadow: "none" }}>
+    <button
+      onClick={exitToMenu}
+      style={{ ...buttonStyle, marginTop: "20px", borderColor: "#fff", color: "#fff", boxShadow: "none" }}
+    >
       EXIT TO MENU
     </button>
   </div>
@@ -126,12 +147,17 @@ export const GameOverMenu: React.FC<GameOverMenuProps> = ({ score, highScore, re
     <h1 style={{ ...titleStyle, color: "#f00", textShadow: "0 0 20px #f00" }}>GAME OVER</h1>
     <div style={{ fontSize: "32px", marginBottom: "20px" }}>FINAL SCORE: {score}</div>
     {score >= highScore && score > 0 && (
-      <div style={{ fontSize: "24px", color: "#ff0", marginBottom: "40px", animation: "pulse 1s infinite" }}>NEW HIGH SCORE!</div>
+      <div style={{ fontSize: "24px", color: "#ff0", marginBottom: "40px", animation: "pulse 1s infinite" }}>
+        NEW HIGH SCORE!
+      </div>
     )}
     <button onClick={restartGame} style={buttonStyle}>
       TRY AGAIN
     </button>
-    <button onClick={exitToMenu} style={{ ...buttonStyle, marginTop: "20px", borderColor: "#fff", color: "#fff", boxShadow: "none" }}>
+    <button
+      onClick={exitToMenu}
+      style={{ ...buttonStyle, marginTop: "20px", borderColor: "#fff", color: "#fff", boxShadow: "none" }}
+    >
       EXIT TO MENU
     </button>
   </div>
@@ -171,7 +197,8 @@ export const GuideOverlay: React.FC<GuideOverlayProps> = ({ setShowGuide }) => (
         <h3 style={{ color: "#ff0", borderBottom: "2px solid #ff0", paddingBottom: "10px" }}>POWER-UPS</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: "15px", marginTop: "15px", textAlign: "left" }}>
           <div>
-            <span style={{ color: "#0ff", fontWeight: "bold" }}>🛡️ SHIELD:</span> Invincibility. Destroys enemies on contact.
+            <span style={{ color: "#0ff", fontWeight: "bold" }}>🛡️ SHIELD:</span> Invincibility. Destroys enemies on
+            contact.
           </div>
           <div>
             <span style={{ color: "#f90", fontWeight: "bold" }}>⚡ RAPID FIRE:</span> Shoot much faster.
@@ -201,7 +228,12 @@ interface OptionsOverlayProps {
   DEFAULT_OPTIONS: GameOptions;
 }
 
-export const OptionsOverlay: React.FC<OptionsOverlayProps> = ({ options, setOptions, setShowOptions, DEFAULT_OPTIONS }) => {
+export const OptionsOverlay: React.FC<OptionsOverlayProps> = ({
+  options,
+  setOptions,
+  setShowOptions,
+  DEFAULT_OPTIONS,
+}) => {
   const toggleWallMode = () => setOptions({ ...options, wallMode: options.wallMode === "DIE" ? "BOUNCE" : "DIE" });
   const toggleGameMode = () => {
     const modes: GameOptions["gameMode"][] = ["NORMAL", "INFINITE", "SURVIVAL"];
@@ -215,13 +247,20 @@ export const OptionsOverlay: React.FC<OptionsOverlayProps> = ({ options, setOpti
     setOptions({ ...options, survivalThreshold: next });
   };
   const toggleEnemySpeed = () => {
-    setOptions({ ...options, enemySpeed: options.enemySpeed === "SLOW" ? "NORMAL" : options.enemySpeed === "NORMAL" ? "FAST" : "SLOW" });
+    setOptions({
+      ...options,
+      enemySpeed: options.enemySpeed === "SLOW" ? "NORMAL" : options.enemySpeed === "NORMAL" ? "FAST" : "SLOW",
+    });
   };
-  const toggleMovementMode = () => setOptions({ ...options, movementMode: options.movementMode === "RECOIL" ? "WASD" : "RECOIL" });
+  const toggleMovementMode = () =>
+    setOptions({ ...options, movementMode: options.movementMode === "RECOIL" ? "WASD" : "RECOIL" });
   const toggleSound = () => setOptions({ ...options, soundEnabled: !options.soundEnabled });
   const toggleAutoFire = () => setOptions({ ...options, autoFire: !options.autoFire });
   const toggleDifficulty = () => {
-    setOptions({ ...options, difficulty: options.difficulty === "EASY" ? "NORMAL" : options.difficulty === "NORMAL" ? "HARD" : "EASY" });
+    setOptions({
+      ...options,
+      difficulty: options.difficulty === "EASY" ? "NORMAL" : options.difficulty === "NORMAL" ? "HARD" : "EASY",
+    });
   };
   const resetToDefaults = () => setOptions(DEFAULT_OPTIONS);
 
@@ -290,7 +329,10 @@ export const OptionsOverlay: React.FC<OptionsOverlayProps> = ({ options, setOpti
       </div>
 
       <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
-        <button onClick={resetToDefaults} style={{ ...buttonStyle, fontSize: "18px", borderColor: "#f00", color: "#f00" }}>
+        <button
+          onClick={resetToDefaults}
+          style={{ ...buttonStyle, fontSize: "18px", borderColor: "#f00", color: "#f00" }}
+        >
           RESET DEFAULTS
         </button>
         <button onClick={() => setShowOptions(false)} style={buttonStyle}>
@@ -310,9 +352,25 @@ interface CheatOverlayProps {
   resetCheats: () => void;
 }
 
-export const CheatOverlay: React.FC<CheatOverlayProps> = ({ cheats, setCheats, setShowCheats, saveCheats, resetCheats }) => (
+export const CheatOverlay: React.FC<CheatOverlayProps> = ({
+  cheats,
+  setCheats,
+  setShowCheats,
+  saveCheats,
+  resetCheats,
+}) => (
   <div style={overlayStyle}>
-    <h2 style={{ ...titleStyle, fontSize: "48px", marginBottom: "30px", color: "#ff00ff", textShadow: "0 0 20px #ff00ff" }}>CHEAT MENU</h2>
+    <h2
+      style={{
+        ...titleStyle,
+        fontSize: "48px",
+        marginBottom: "30px",
+        color: "#ff00ff",
+        textShadow: "0 0 20px #ff00ff",
+      }}
+    >
+      CHEAT MENU
+    </h2>
 
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       <div style={optionRowStyle}>
@@ -365,13 +423,19 @@ export const CheatOverlay: React.FC<CheatOverlayProps> = ({ cheats, setCheats, s
           style={{ width: "200px" }}
         />
       </div>
-      <div style={{ fontSize: "14px", color: "#888", marginTop: "-15px", textAlign: "right" }}>0 = Use Option Default</div>
+      <div style={{ fontSize: "14px", color: "#888", marginTop: "-15px", textAlign: "right" }}>
+        0 = Use Option Default
+      </div>
 
       <div style={optionRowStyle}>
         <span style={{ fontSize: "20px" }}>GOD MODE:</span>
         <button
           onClick={() => setCheats({ ...cheats, godMode: !cheats.godMode })}
-          style={{ ...optionButtonStyle, color: cheats.godMode ? "#0f0" : "#f00", borderColor: cheats.godMode ? "#0f0" : "#f00" }}
+          style={{
+            ...optionButtonStyle,
+            color: cheats.godMode ? "#0f0" : "#f00",
+            borderColor: cheats.godMode ? "#0f0" : "#f00",
+          }}
         >
           {cheats.godMode ? "ENABLED" : "DISABLED"}
         </button>

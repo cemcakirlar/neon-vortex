@@ -1,16 +1,30 @@
 export class AudioController {
-  private ctx: AudioContext;
-  private masterGain: GainNode;
+  private ctx: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
 
   constructor() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // Audio graph is lazily initialized on first user-triggered action.
+  }
+
+  private ensureContext() {
+    if (this.ctx && this.masterGain) return;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new AudioCtx();
     this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.value = 0.3; // Master volume
+    this.masterGain.gain.value = 0.3;
     this.masterGain.connect(this.ctx.destination);
   }
 
+  resumeIfNeeded() {
+    this.ensureContext();
+    if (this.ctx?.state === "suspended") {
+      void this.ctx.resume();
+    }
+  }
+
   playShoot() {
+    this.ensureContext();
+    if (!this.ctx || !this.masterGain) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
@@ -29,6 +43,8 @@ export class AudioController {
   }
 
   playExplosion() {
+    this.ensureContext();
+    if (!this.ctx || !this.masterGain) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
@@ -47,6 +63,8 @@ export class AudioController {
   }
 
   playHit() {
+    this.ensureContext();
+    if (!this.ctx || !this.masterGain) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
