@@ -1,66 +1,68 @@
-# 🌀 Neon Vortex
+# Neon Vortex
 
-Dairesel bir arenada hayatta kalmaya çalıştığın, neon ışıklarla bezeli yoğun bir arcade survival oyunu. Ateş ettiğinde geri tepme kuvvetiyle hareket edersin — stratejin bu!
+Dairesel bir arenada hayatta kal. Neon ışıklar, yoğun düşman dalgaları, geri tepmeyle hareket.
 
-## 🎮 Oyun Kılavuzu
+Ateş ettiğinde gemi itilir. Hareketin silahındır.
 
-### Kontroller
-
-| Kontrol     | Açıklama                                    |
-| ----------- | ------------------------------------------- |
-| **Mouse**   | Geminin yönünü kontrol eder                 |
-| **Sol Tık** | Ateş eder (geri tepme ile hareket!)         |
-| **WASD**    | Alternatif hareket modu (ayarlardan açılır) |
-| **Space**   | WASD modunda ateş etme                      |
-| **ESC**     | Oyunu duraklat/devam et                     |
-
-### Nasıl Oynanır?
-
-1. **Ateş Et, Hareket Et**: Sol tık ile ateş ettiğinde gemi geri tepme kuvvetiyle itilir. Bu sayede arenada hareket edersin.
-2. **Düşmanlardan Kaç**: Renkli düşmanlar sana doğru gelir. Onlara değme!
-3. **Duvarlara Dikkat**: Neon duvarlar öldürücü olabilir (ayara göre değişir).
-4. **Öldür, Puan Kazan**: Her düşman öldürdüğünde puan kazanırsın.
-
-### Düşman Türleri
-
-| Tür         | Özellik                                  |
-| ----------- | ---------------------------------------- |
-| **Normal**  | Sana doğru yavaşça yaklaşır              |
-| **Dasher**  | Hızlı hareket eder                       |
-| **Shooter** | Sana doğru mermi atar                    |
-| **Tank**    | Daha fazla hasar alır, yüksek puan verir |
-
-### Güçlendirmeler (Power-Ups)
-
-Düşmanları öldürdüğünde şansa bağlı olarak güçlendirmeler düşer:
-
-- 🔥 **Rapid Fire**: Daha hızlı ateş etme
-- 🌟 **Spread Shot**: 3'lü yayılım atışı
-- 🛡️ **Shield**: Bir ölümden kurtulursun
-
-### Oyun Modları
-
-- **Normal**: Klasik mod, öldüğünde oyun biter
-- **Infinite**: Sonsuz mod, ölsen bile devam edersin
-- **Survival**: Dakikada belirli sayıdan fazla ölürsen oyun biter
-
-### İpuçları
-
-- Geri tepmeyi avantajına kullan — düşmanlardan kaçarken ateş et
-- Power-up'ları mermilerle de toplayabilirsin
-- Level arttıkça düşmanlar daha çeşitli ve sık gelir
-- Duvar modunu "Bounce" yaparak daha rahat oynayabilirsin
-
----
-
-## 🛠️ Geliştirme
+## Hızlı başlangıç
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-### Kalite Komutları
+## Kontroller
+
+| Tuş | İş |
+| --- | --- |
+| Mouse | Geminin yönü |
+| Sol tık | Ateş eder; geri tepme gemiyi iter |
+| WASD | Alternatif hareket (ayarlardan açılır) |
+| Space | WASD modunda ateş |
+| Esc | Duraklat / devam |
+
+## Nasıl oynanır
+
+1. Sol tıkla ateş et. Geri tepme gemiyi iter; arenada böyle hareket edersin.
+2. Renkli düşmanlara değme.
+3. Neon duvarlar ayara göre öldürebilir.
+4. Her öldürülen düşman puan getirir.
+
+## Düşmanlar
+
+| Tür | Davranış |
+| --- | --- |
+| Normal | Yavaşça yaklaşır |
+| Dasher | Hızlı hareket eder |
+| Shooter | Sana mermi atar |
+| Tank | Daha çok hasar alır, daha çok puan verir |
+
+## Güçlendirmeler
+
+Düşman öldürünce şansa bağlı düşer. Mermilerle de toplanır.
+
+| Güç | Etki |
+| --- | --- |
+| Rapid Fire | Daha hızlı ateş |
+| Spread Shot | Üçlü yayılım |
+| Shield | Bir ölümden kurtarır |
+
+## Modlar
+
+| Mod | Kural |
+| --- | --- |
+| Normal | Ölünce oyun biter |
+| Infinite | Ölünce de devam |
+| Survival | Dakikada belirli sayıdan fazla ölürsen biter |
+
+## İpuçları
+
+- Kaçarken ateş et; geri tepme kaçış yolundur.
+- Power-up'ları mermilerle de topla.
+- Level arttıkça düşmanlar çeşitlenir ve sıklaşır.
+- Duvar modunu Bounce yaparsan arena daha affedici olur.
+
+## Geliştirme
 
 ```bash
 pnpm lint
@@ -69,25 +71,18 @@ pnpm test
 pnpm build
 ```
 
-### Ortam Değişkenleri
+Ortam için `.env.example` dosyasını kopyala.
 
-`.env.example` dosyasını kopyalayarak runtime davranışını yönetebilirsin:
+| Değişken | Ne yapar |
+| --- | --- |
+| `VITE_ANALYTICS_ENABLED` | Analytics aç/kapat |
+| `VITE_GA_MEASUREMENT_ID` | GA measurement id |
+| `VITE_ENABLE_CHEATS` | Production build'de cheat menüsü |
 
-- `VITE_ANALYTICS_ENABLED`: analytics aç/kapat.
-- `VITE_GA_MEASUREMENT_ID`: GA measurement id.
-- `VITE_ENABLE_CHEATS`: production build'de cheat menüsünü görünür yap.
+Kritik akışlar ve metrik hedefleri: [`docs/baseline-metrics.md`](docs/baseline-metrics.md)
 
-### Baseline
+**Yığın:** React 19, TypeScript, Vite, Vitest.
 
-Refactor boyunca korunması gereken kritik akışlar ve metrik hedefleri için:
+## Lisans
 
-- `docs/baseline-metrics.md`
-
-### Workspace Evrimi
-
-Monorepo geçişi için başlangıç dizinleri eklendi:
-
-- `apps/web`
-- `packages/game-core`
-
-**Teknolojiler**: React 19 + TypeScript + Vite + Vitest
+[MIT](LICENSE) © 2026 Cem Çakırlar

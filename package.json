@@ -2,6 +2,7 @@
   "name": "neon-vortex",
   "private": true,
   "version": "0.0.0",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "install:deps": "pnpm install",
