@@ -13,13 +13,13 @@ pnpm dev
 
 ## Kontroller
 
-| Tuş | İş |
-| --- | --- |
-| Mouse | Geminin yönü |
-| Sol tık | Ateş eder; geri tepme gemiyi iter |
-| WASD | Alternatif hareket (ayarlardan açılır) |
-| Space | WASD modunda ateş |
-| Esc | Duraklat / devam |
+| Tuş     | İş                                     |
+| ------- | -------------------------------------- |
+| Mouse   | Geminin yönü                           |
+| Sol tık | Ateş eder; geri tepme gemiyi iter      |
+| WASD    | Alternatif hareket (ayarlardan açılır) |
+| Space   | WASD modunda ateş                      |
+| Esc     | Duraklat / devam                       |
 
 ## Nasıl oynanır
 
@@ -30,29 +30,29 @@ pnpm dev
 
 ## Düşmanlar
 
-| Tür | Davranış |
-| --- | --- |
-| Normal | Yavaşça yaklaşır |
-| Dasher | Hızlı hareket eder |
-| Shooter | Sana mermi atar |
-| Tank | Daha çok hasar alır, daha çok puan verir |
+| Tür     | Davranış                                 |
+| ------- | ---------------------------------------- |
+| Normal  | Yavaşça yaklaşır                         |
+| Dasher  | Hızlı hareket eder                       |
+| Shooter | Sana mermi atar                          |
+| Tank    | Daha çok hasar alır, daha çok puan verir |
 
 ## Güçlendirmeler
 
 Düşman öldürünce şansa bağlı düşer. Mermilerle de toplanır.
 
-| Güç | Etki |
-| --- | --- |
-| Rapid Fire | Daha hızlı ateş |
-| Spread Shot | Üçlü yayılım |
-| Shield | Bir ölümden kurtarır |
+| Güç         | Etki                 |
+| ----------- | -------------------- |
+| Rapid Fire  | Daha hızlı ateş      |
+| Spread Shot | Üçlü yayılım         |
+| Shield      | Bir ölümden kurtarır |
 
 ## Modlar
 
-| Mod | Kural |
-| --- | --- |
-| Normal | Ölünce oyun biter |
-| Infinite | Ölünce de devam |
+| Mod      | Kural                                        |
+| -------- | -------------------------------------------- |
+| Normal   | Ölünce oyun biter                            |
+| Infinite | Ölünce de devam                              |
 | Survival | Dakikada belirli sayıdan fazla ölürsen biter |
 
 ## İpuçları
@@ -73,11 +73,11 @@ pnpm build
 
 Ortam için `.env.example` dosyasını kopyala.
 
-| Değişken | Ne yapar |
-| --- | --- |
-| `VITE_ANALYTICS_ENABLED` | Analytics aç/kapat |
-| `VITE_GA_MEASUREMENT_ID` | GA measurement id |
-| `VITE_ENABLE_CHEATS` | Production build'de cheat menüsü |
+| Değişken                 | Ne yapar                         |
+| ------------------------ | -------------------------------- |
+| `VITE_ANALYTICS_ENABLED` | Analytics aç/kapat               |
+| `VITE_GA_MEASUREMENT_ID` | GA measurement id                |
+| `VITE_ENABLE_CHEATS`     | Production build'de cheat menüsü |
 
 Kritik akışlar ve metrik hedefleri: [`docs/baseline-metrics.md`](docs/baseline-metrics.md)
 
